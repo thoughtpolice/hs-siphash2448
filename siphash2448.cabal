@@ -1,0 +1,121 @@
+name:                siphash2448
+version:             0.0.0.0
+category:            Cryptography
+license:             MIT
+synopsis:            Siphash as a message-authentication code
+homepage:            http://thoughtpolice.github.com/hs-siphash2448
+bug-reports:         http://github.com/thoughtpolice/hs-siphash2448/issues
+license-file:        LICENSE.txt
+copyright:           Copyright (c) Austin Seipp 2013
+author:              Austin Seipp
+maintainer:          Austin Seipp <aseipp@pobox.com>
+build-type:          Simple
+cabal-version:       >=1.10
+tested-with:         GHC == 6.12.3, GHC == 7.0.1, GHC == 7.0.2, GHC == 7.0.3,
+                     GHC == 7.0.4,  GHC == 7.2.1, GHC == 7.2.2, GHC == 7.4.1,
+                     GHC == 7.4.2,  GHC == 7.6.1,  GHC == 7.6.2, GHC == 7.6.3
+
+description:
+  This package provides @siphash24@ and @siphash48@ for use as a
+  message-authentication code (MAC.)
+  .
+  The underlying implementation uses the @little@ code of @siphash24@ and
+  @siphash48@ from SUPERCOP, and should be relatively fast.
+  .
+  For more information visit <https://131002.net/siphash/>.
+
+extra-source-files:
+  .travis.yml
+  AUTHORS.txt
+  README.md
+  CONTRIBUTING.md
+  CHANGELOG.md
+  src/cbits/*.c
+  src/cbits/include/*.h
+  benchmarks/*.hs
+
+source-repository head
+  type: git
+  location: https://github.com/thoughtpolice/hs-siphash2448.git
+
+-------------------------------------------------------------------------------
+-- Flags
+
+flag test-properties
+  default: True
+  manual: True
+
+flag test-hlint
+  default: True
+  manual: True
+
+-------------------------------------------------------------------------------
+-- Build pt 1: main project
+
+library
+  build-depends:
+    base >= 4 && < 5,
+    bytestring
+
+  exposed-modules:
+    Crypto.MAC.Siphash24
+    Crypto.MAC.Siphash48
+
+  ghc-options:        -Wall -fwarn-tabs
+  default-language:   Haskell98
+  hs-source-dirs:     src
+  c-sources:          src/cbits/siphash2448.c
+  include-dirs:       src/cbits/include
+
+-------------------------------------------------------------------------------
+-- Build pt 2: Tests
+
+test-suite properties
+  type: exitcode-stdio-1.0
+  main-is: properties.hs
+  ghc-options: -w
+  hs-source-dirs: tests
+  default-language:   Haskell98
+
+  if !flag(test-properties)
+    buildable: False
+  else
+    build-depends:
+      base,
+      siphash2448,
+      bytestring,
+      QuickCheck  >= 2.4
+
+--
+-- Style/doc tests below
+--
+
+test-suite hlint
+  type: exitcode-stdio-1.0
+  main-is: hlint.hs
+  ghc-options: -w
+  hs-source-dirs: tests
+  default-language:   Haskell98
+
+  if !flag(test-hlint)
+    buildable: False
+  else
+    build-depends:
+      base,
+      hlint >= 1.7
+
+-------------------------------------------------------------------------------
+-- Build pt 3: benchmarks
+
+benchmark bench1
+  type:               exitcode-stdio-1.0
+  build-depends:
+    base >= 4 && < 5,
+    bytestring,
+    criterion,
+    deepseq,
+    siphash2448
+
+  default-language:   Haskell98
+  hs-source-dirs:     benchmarks
+  main-is:            bench1.hs
